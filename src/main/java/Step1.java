@@ -19,8 +19,8 @@ public class Step1 {
         private final static IntWritable k = new IntWritable();
         private final static Text v = new Text();
 
-        //Input: UserId,ItemId,ItemScore
-        //Output: UserId -> ItemId,ItemScore
+        //Input: userId,itemId,itemScore
+        //Output: userId -> itemId,itemScore
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             
@@ -37,8 +37,8 @@ public class Step1 {
 
     public static class Step1_ToUserVectorReducer extends Reducer <IntWritable, Text, IntWritable, Text> {
         private final static Text v = new Text();
-        //Input: UserId -> ItemId,ItemScore
-        //Output: UserId -> ItemId:ItemScore,ItemId:ItemScore,...
+        //Input: userId -> itemId,itemScore
+        //Output: userId -> itemId,itemScore,itemId:itemScore,...
         @Override
 		protected void reduce(IntWritable key, Iterable<Text> values,
 				Context context)

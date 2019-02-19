@@ -18,17 +18,19 @@ public class Step3 {
 	public static class Step31_UserVectorSplitterMapper extends Mapper<LongWritable, Text, IntWritable, Text> {
 		private final static IntWritable k = new IntWritable();
 		private final static Text v = new Text();
-        //itemid userid:score
-		//Input:  UserId -> ItemId:ItemScore,ItemId:ItemScore,...
-		//Output: ItemId -> UserId:ItemScore
+		//Input:  userId -> itemId:itemScore,itemId:itemScore ,.....
+		//Output: itemId -> userId:itemScore
 		@Override
 		public void map(LongWritable key, Text values, Context context)
 				throws IOException, InterruptedException {
 			String[] tokens = Recommend.DELIMITER.split(values.toString());
             for(int i=1;i<tokens.length;i++){
                 String[] itemScore = tokens[i].split(":");
-                k.set(Integer.parseInt(itemScore[0]));
-                v.set(tokens[0]+":"+itemScore[1]);
+                String userId = tokens[0];
+                String score = itemScore[1];
+                int itemId = Integer.parseInt(itemScore[0]);
+                k.set(itemId);
+                v.set(userId+":"+score);
                 context.write(k,v);
             }
 		}
@@ -61,15 +63,16 @@ public class Step3 {
 		private final static Text k = new Text();
 		private final static IntWritable v = new IntWritable();
         //iteamA:itemB value
-		 //Input: ItemId_A:ItemId_B -> Count
-		//Output: ItemId_A:ItemId_B -> Count
+		 //Input: itemId_A:itemId_B -> sum
+		//Output: itemId_A:itemId_B -> sum
 		@Override
 		public void map(LongWritable key, Text values,Context context)
 				throws IOException, InterruptedException {
             String[] tokens = Recommend.DELIMITER.split(values.toString());
-
-                k.set(tokens[0].toString());
-                v.set(Integer.parseInt(tokens[1].toString()));
+				String itemAB = tokens[0].toString();
+				int sum = Integer.parseInt(tokens[1].toString());
+                k.set(itemAB);
+                v.set(sum);
                 context.write(k,v);
 		}
 	}

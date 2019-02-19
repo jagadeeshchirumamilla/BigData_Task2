@@ -20,16 +20,19 @@ public class Step4_2 {
 	public static class Step4_RecommendMapper extends Mapper<LongWritable, Text, Text, Text> {
         private final static Text k = new Text();
         private final static Text v = new Text();
-        //Input: ItemId -> ItemId_A:UserId:Count*ItemScore
-        //Output: ItemId_A:UserId -> Count*ItemScore
+        //Input: itemId -> itemId_A:userId:countScore
+        //Output: itemId_A:userId -> count*itemScore
         @Override
         public void map(LongWritable key, Text values, Context context) throws IOException, InterruptedException {
             String[] tokens = Recommend.DELIMITER.split(values.toString());
 
             for(int i=1;i<tokens.length;i++){
                 String[] itemUserResult = tokens[i].split(":");
-                k.set(itemUserResult[0]+":"+itemUserResult[1]);
-                v.set(itemUserResult[2]);
+                String itemA = itemUserResult[0];
+                String itemB = itemUserResult[1];
+                String rating = itemUserResult[2];
+                k.set(itemA+":"+itemB);
+                v.set(rating);
                 context.write(k,v);
             }
 
@@ -38,8 +41,8 @@ public class Step4_2 {
 
     public static class Step4_RecommendReducer extends Reducer<Text, Text, Text, Text> {
         private Text result = new Text();
-        //Input: ItemId_A:UserId -> Count*ItemScore
-        //Output: ItemId_A:UserId -> SUM(Count*ItemScore)
+        //Input: itemId_A:userId -> rating
+        //Output: itemId_A:userId -> SUM(rating)
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             double sum = 0;

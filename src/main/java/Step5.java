@@ -56,12 +56,29 @@ public class Step5 {
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
         	//you can use provided SortHashMap.java or design your own code.
-            StringBuilder sb = new StringBuilder();
-            for (Text value:values) {
-                sb.append("," + value.toString());
+            int userId = 153; //hardcoded from e0338153 last 3 digits
+            int keyUserId = Integer.parseInt(key.toString());
+            if(userId != keyUserId){
+                return;
             }
-            v.set(sb.toString().replaceFirst(",", ""));
-            context.write(key, v);
+            HashMap<String,Float> itemRatings = new HashMap<String, Float>();
+            for(Text value : values){
+                String [] itemRating = value.toString().split(":");
+                String itemId = itemRating[0];
+                Float rating = Float.parseFloat(itemRating[1]);
+                itemRatings.put(itemId,rating);
+            }
+            List<Map.Entry<String,Float>> sortedItemRatings = SortHashMap.sortHashMap(itemRatings);
+            for(Map.Entry<String,Float> entry : sortedItemRatings){
+                v.set(entry.getKey()+":"+entry.getValue());
+                context.write(key,v);
+            }
+//            StringBuilder sb = new StringBuilder();
+//            for (Text value:values) {
+//                sb.append("," + value.toString());
+//            }
+//            v.set(sb.toString().replaceFirst(",", ""));
+//            context.write(key, v);
 
         }
     }

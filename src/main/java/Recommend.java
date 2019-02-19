@@ -46,17 +46,17 @@ public class Recommend {
         path.put("Step5Output", path.get("Step1Input") + "/step5");
 
 
-//        Step1.run(path);
-//        Step2.run(path);
-//        Step3.run1(path);
-//        Step3.run2(path);
-//        Step4_1.run(path);
-//        Step4_2.run(path);
+        Step1.run(path);
+        Step2.run(path);
+        Step3.run1(path);
+        Step3.run2(path);
+        Step4_1.run(path);
+        Step4_2.run(path);
         Step5.run(path);
 
         //example to show result
-        HDFSAPI hdfs = new HDFSAPI(new Path(HDFS));
-     //   System.out.println(path.get("Step5Output")+"/part-r-00000");
+        //HDFSAPI hdfs = new HDFSAPI(new Path(HDFS));
+        //System.out.println(path.get("Step5Output")+"/part-r-00000");
        // hdfs.readFile(new Path(path.get("Step5Output")+"/part-r-00000"));
 
         System.exit(0);

@@ -13,15 +13,14 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-//import recommendpkg.Step1.Step1_ToItemPreMapper;
-//import recommendpkg.Step1.Step1_ToUserVectorReducer;
 //import org.apache.hadoop.examples.HDFSAPI;
 
 public class Step2 {
     public static class Step2_UserVectorToCooccurrenceMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static Text k = new Text();
         private final static IntWritable v = new IntWritable(1);
-
+        //Input: userId -> itemId:itemScore,itemId:itemScore,...
+        //Output: itemId_A:itemId_B -> 1 & itemId_B:itemId_A -> 1
         @Override
         public void map(LongWritable key, Text values, Context context) throws IOException, InterruptedException {
             String[] tokens = Recommend.DELIMITER.split(values.toString());
@@ -47,7 +46,8 @@ public class Step2 {
 
     public static class Step2_UserVectorToConoccurrenceReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
         private IntWritable result = new IntWritable();
-
+        //Input: itemId_A:itemId_B -> 1 & itemId_B:itemId_A -> 1
+        // Output: itemId_A:itemId_B -> sum
         @Override
         protected void reduce(Text key, Iterable<IntWritable> values, Context context)
                 throws IOException, InterruptedException {

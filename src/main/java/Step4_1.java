@@ -28,21 +28,26 @@ public class Step4_1 {
             FileSplit split = (FileSplit) context.getInputSplit();
             flag = split.getPath().getParent().getName();// data set
         }
-        //Input: ItemId_A:ItemId_B -> Count //Input: UserId -> ItemId:ItemScore
-        //Output: ItemId_B -> step3_2:ItemId_A:Count
-        //Output: ItemId -> step3_1:UserId:ItemScore
+        //Input: itemId -> userId:itemScore
+        //Input: itemId_A:itemId_B -> sum
+        //Output: itemId_B -> step3_2:itemId_A:sum
+        //Output: itemId -> step3_1:userId:itemScore
         @Override
         public void map(LongWritable key, Text values, Context context) throws IOException, InterruptedException {
             String[] tokens = Recommend.DELIMITER.split(values.toString());
-          //  System.out.println("inside map 4_1"+flag);
                 if (flag.equalsIgnoreCase("step3_2")) {
                     String[] items = tokens[0].split(":");
-                    k.set(items[1]);
-                    v.set("step3_2" + ":" + items[0] + ":" + tokens[1]);
+                    String count = tokens[1];
+                    String itemA = items[0];
+                    String itemB = items[1];
+                    k.set(itemB);
+                    v.set("cooc_matrix" + ":" + itemA + ":" + count);
                     context.write(k, v);
                 } else if (flag.equalsIgnoreCase("step3_1")) {
+                    String itemId = tokens[0];
+                    String userIdScore = tokens[1];
                     k.set(tokens[0]);
-                    v.set("step3_1" + ":" + tokens[1]);
+                    v.set("score_matrix" + ":" + userIdScore);
                     context.write(k, v);
                 }
         }
@@ -50,30 +55,30 @@ public class Step4_1 {
 
         public static class Step4_AggregateReducer extends Reducer<Text, Text, Text, Text> {
             private final static Text v = new Text();
-            //Input: ItemId_B -> step3_2:ItemId_A:Count or ItemID -> step3_1:UserId:ItemScore
-            //Output: ItemId_B -> ItemId_A:UserId:Count*ItemScore
+            //Input: itemId_B -> step3_2:itemId_A:count or itemID -> step3_1:userId:score
+            //Output: itemId_B -> itemId_A:userId:count*score
             @Override
             public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-                List<String> values_Step3_1 = new ArrayList<String>();
-                List<String> values_step3_2 = new ArrayList<String>();
+                List<String> cooc_Matrix = new ArrayList<String>();
+                List<String> score_Matrix = new ArrayList<String>();
 
                 for(Text value : values){
                     String [] tokens = value.toString().split(":");
-                    if(tokens[0].equalsIgnoreCase("step3_1")){
-                        values_Step3_1.add(tokens[1]+":"+tokens[2]);
-                    }else if(tokens[0].equalsIgnoreCase("step3_2")){
-                        values_step3_2.add(tokens[1]+":"+tokens[2]);
+                    if(tokens[0].equalsIgnoreCase("score_matrix")){
+                        score_Matrix.add(tokens[1]+":"+tokens[2]);
+                    }else if(tokens[0].equalsIgnoreCase("cooc_matrix")){
+                        cooc_Matrix.add(tokens[1]+":"+tokens[2]);
                     }
                 }
-            Iterator<String> iterator3_1 = values_Step3_1.iterator();
-                while(iterator3_1.hasNext()){
-                    String [] tokens_3_1 = iterator3_1.next().split(":");
+            Iterator<String> score_iterator = score_Matrix.iterator();
+                while(score_iterator.hasNext()){
+                    String [] tokens_score = score_iterator.next().split(":");
 
-                    Iterator<String> iterator3_2 = values_step3_2.iterator();
-                    while (iterator3_2.hasNext()){
-                        String [] tokens_3_2 = iterator3_2.next().split(":");
-                        double countScore = Double.parseDouble(tokens_3_1[1])*Double.parseDouble(tokens_3_2[1]);
-                        v.set(tokens_3_2[0]+":"+tokens_3_1[0]+":"+countScore);
+                    Iterator<String> cooc_iterator = cooc_Matrix.iterator();
+                    while (cooc_iterator.hasNext()){
+                        String [] tokens_cooc = cooc_iterator.next().split(":");
+                        double countScore = Double.parseDouble(tokens_score[1])*Double.parseDouble(tokens_cooc[1]);
+                        v.set(tokens_cooc[0]+":"+tokens_score[0]+":"+countScore);
                         context.write(key,v);
                     }
                 }
